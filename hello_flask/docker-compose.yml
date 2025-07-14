@@ -1,0 +1,14 @@
+version: '3.8'
+# Version of the Docker Compose file format
+services: #list all the different parts of the application
+  web: # the web application
+    build: . # build the Dockerfile in the current directory
+    ports: # expose the web application on port 5002
+      - "5002:5002" 
+    depends_on:
+      - mydb # the web application depends on the database service
+
+  mydb: # the database service
+    image: mysql:8
+    environment:
+      MYSQL_ROOT_PASSWORD: my-secret-pw # set the root password for MySQL
