@@ -2,7 +2,8 @@ version: '3.8'
 # Version of the Docker Compose file format
 services: #list all the different parts of the application
   web: # the web application
-    build: . # build the Dockerfile in the current directory
+    image: 095890598132.dkr.ecr.eu-west-2.amazonaws.com/flask-mysql:latest
+    #build: . # build the Dockerfile in the current directory
     ports: # expose the web application on port 5002
       - "5002:5002" 
     depends_on:
