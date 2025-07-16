@@ -19,140 +19,64 @@ I created this repository to **track and structure my Docker learning**, ensurin
 
 ---
 
-## Docker Multi-Container Flask Application
+## Challenge/Mini-project 1: Docker Multi-Container Flask Application
 
-This project demonstrates how to build a scalable multi-container application using Docker Compose, featuring a Flask web application, Redis database, and nginx load balancer.
+# Docker Multi-Container Flask Application
 
----
+A scalable Flask web app with Redis and nginx load balancing using Docker Compose.
 
-## Project Structure
-.
-├── app.py                 # Flask application
-├── Dockerfile            # Container definition for Flask app
-├── docker-compose.yaml   # Multi-container orchestration
-└── nginx.conf            # nginx load balancing configuration
+## What This Project Does
 
-1. Environment Variables in Flask
-Challenge: Making Flask app configurable through environment variables instead of hardcoded values.
-Solution: Using os.getenv() with fallback defaults
-pythonimport os
+- Flask web app that counts page visits
+- Redis database stores the visit counter
+- nginx load balancer distributes traffic across multiple Flask instances
+- Everything runs in Docker containers
+
+## Files
+
+- `app.py` - Flask application
+- `Dockerfile` - Flask container setup
+- `docker-compose.yaml` - Container orchestration
+- `nginx.conf` - Load balancer configuration
+- `requirements.txt` - Python dependencies
+
+## Key Learning Points
+
+### 1. Environment Variables in Flask
+
+Instead of hardcoding Redis connection details:
+
+```python
+import os
 
 r = redis.Redis(
     host=os.getenv('REDIS_HOST', 'redis'), 
     port=int(os.getenv('REDIS_PORT', '6379'))
 )
-Key Concepts:
+```
 
-Environment variables are always strings - convert with int() when needed
-Always provide sensible defaults
-Use descriptive variable names (e.g., REDIS_HOST not just host)
+Set them in docker-compose.yaml:
+```yaml
+environment:
+  - REDIS_HOST=redis
+  - REDIS_PORT=6379
+```
 
-2. Docker Compose Service Communication
-Challenge: Containers need to communicate with each other by name, not localhost.
-Solution: Use service names as hostnames
-yamlservices:
-  web:
-    environment:
-      - REDIS_HOST=redis  # Service name, not localhost
-      - REDIS_PORT=6379
-  redis:
-    image: "redis:latest"
-Key Concepts:
+### 2. Container Communication
 
-Docker Compose creates an internal network where services can reach each other by name
-Default Redis host should be the service name (redis), not localhost
+Containers talk to each other using service names, not localhost:
+- Redis service name: `redis`
+- Flask connects to: `redis:6379`
 
-3. Load Balancing and Scaling
-Challenge: Running multiple instances of the same service behind a load balancer.
-Solution: Use nginx as reverse proxy with Docker Compose scaling
-yamlweb:
-  expose:        # Internal port only
-    - "5003"
-  
-nginx:
-  ports:         # External access point
-    - "5003:5003"
-  volumes:
-    - ./nginx.conf:/etc/nginx/nginx.conf
-Useful Commands
-Development
-bash# Build and run all services
-docker-compose up --build
+### 3. Load Balancing
 
-# Run in background
-docker-compose up -d
-
-# View logs
-docker-compose logs
-docker-compose logs web
-
-# Stop all services
-docker-compose down
-Scaling
-bash# Scale web service to 3 instances
-docker-compose up --scale web=3
-
-# Scale with build
-docker-compose up --scale web=3 --build
-
-# Check running containers
-docker-compose ps
-Debugging
-bash# Execute command in running container
-docker-compose exec web bash
-
-# View service logs
-docker-compose logs -f web
-
-# Restart specific service
-docker-compose restart web
-Key Configuration Patterns
-Docker Compose Environment Variables
-yamlservices:
-  web:
-    environment:
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      # Alternative object syntax:
-      # environment:
-      #   REDIS_HOST: redis
-      #   REDIS_PORT: 6379
-Service Dependencies
-yamlservices:
-  web:
-    depends_on:
-      - redis    # Ensures redis starts before web
-  nginx:
-    depends_on:
-      - web      # Ensures web starts before nginx
-Port Exposure vs Publishing
-yamlservices:
-  web:
-    expose:      # Internal network only
-      - "5003"
-  
-  nginx:
-    ports:       # External access
-      - "5003:5003"
-Volume Mounting
-yamlservices:
-  nginx:
-    volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf  # Mount local file
-  redis:
-    volumes:
-      - redis-data:/data                    # Named volume
-
-volumes:
-  redis-data:    # Persistent storage
-nginx Load Balancing Configuration
-nginxevents {}
-
+nginx configuration:
+```nginx
+events {}
 http {
     upstream flask_app {
-        server web:5003;  # Docker Compose handles multiple instances
+        server web:5003;
     }
-
     server {
         listen 5003;
         location / {
@@ -160,30 +84,75 @@ http {
         }
     }
 }
-Best Practices Learned
+```
 
-Use environment variables for configuration instead of hardcoding values
-Use expose vs ports - only expose external ports where needed
-Service naming - use descriptive names that reflect their purpose
-Dependencies - define service startup order with depends_on
-Volume persistence - use named volumes for data that should survive container restarts
-Health checks - consider adding health checks for production readiness
+## Useful Commands
 
-Common Pitfalls to Avoid
+### Basic Usage
+```bash
+# Start everything
+docker-compose up --build
 
-localhost confusion: Use service names, not localhost for inter-container communication
-Port conflicts: When scaling, don't publish the same port multiple times
-Environment variable types: Remember to convert strings to integers when needed
-Volume paths: Ensure local paths exist and are accessible to Docker
-Build context: Make sure Dockerfile and required files are in the build context
+# Stop everything
+docker-compose down
 
-Testing the Application
+# View logs
+docker-compose logs web
+```
 
-Basic functionality: Visit http://localhost:5003 and http://localhost:5003/count
-Redis persistence: Restart containers and verify count persists
-Load balancing: Check logs to see requests hitting different instances (web-1, web-2, web-3)
-Scaling: Try different scale numbers and verify all instances receive traffic
+### Scaling
+```bash
+# Run 3 Flask instances
+docker-compose up --scale web=3
 
-This project demonstrates fundamental Docker Compose concepts essential for building scalable containerized applications.
+# Check running containers
+docker-compose ps
+```
 
+## Important Docker Compose Patterns
 
+### Port Configuration
+```yaml
+web:
+  expose:        # Internal only
+    - "5003"
+
+nginx:
+  ports:         # External access
+    - "5003:5003"
+```
+
+### Service Dependencies
+```yaml
+web:
+  depends_on:
+    - redis
+
+nginx:
+  depends_on:
+    - web
+```
+
+### Volumes
+```yaml
+nginx:
+  volumes:
+    - ./nginx.conf:/etc/nginx/nginx.conf
+
+redis:
+  volumes:
+    - redis-data:/data
+```
+
+## Testing
+
+1. Visit `http://localhost:5003` - should show welcome message
+2. Visit `http://localhost:5003/count` - should increment counter
+3. Check logs to see requests hitting different instances (web-1, web-2, web-3)
+
+## Common Mistakes to Avoid
+
+- Don't use `localhost` for container communication - use service names
+- Environment variables are strings - use `int()` when needed
+- Only expose ports externally when necessary
+- Use `expose` for internal communication, `ports` for external access
