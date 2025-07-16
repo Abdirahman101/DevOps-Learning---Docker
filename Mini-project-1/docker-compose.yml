@@ -3,12 +3,29 @@ version: '3.8'
 services: #list all the different parts of the application
   web: # the web application
     build: . # build the Dockerfile in the current directory
-    ports: # expose the web application on port 5002
-      - "5003:5003" 
+    expose: # expose the web application on port 5002
+      - "5003" 
     depends_on:
       - redis # the web application depends on the database service
-      
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
   redis: # the database service
     image: "redis:latest"
     ports:
-     - "6379:6379"
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+  
+  nginx:
+    image: nginx:latest
+    ports:
+      - "5003:5003"
+    volumes: #mount custom nginx.conf file to an nginx container to configure load balancing
+      - ./nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - web
+
+#configured redis to use a volume to persist data
+volumes:
+  redis-data:

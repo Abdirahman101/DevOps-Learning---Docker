@@ -1,10 +1,14 @@
 from flask import Flask
 import redis
+import os
 
 app = Flask(__name__)
 
-r = redis.Redis(host='redis', port=6379)
+#r = redis.Redis(host='redis', port=6379)
 #Created redis connection
+
+r = redis.Redis(host=os.getenv('REDIS_HOST', 'redis'), port=int(os.getenv('REDIS_PORT', '6379')))
+#creating environment variables for redis connection
 
 @app.route('/')
 def hello_world():
