@@ -19,7 +19,7 @@ I created this repository to **track and structure my Docker learning**, ensurin
 
 ---
 
-## Challenge/Mini-project 1: Docker Multi-Container Flask Application
+## Challenge/Mini-project 1:
 
 # Docker Multi-Container Flask Application
 
@@ -38,7 +38,6 @@ A scalable Flask web app with Redis and nginx load balancing using Docker Compos
 - `Dockerfile` - Flask container setup
 - `docker-compose.yaml` - Container orchestration
 - `nginx.conf` - Load balancer configuration
-- `requirements.txt` - Python dependencies
 
 ## Key Learning Points
 
