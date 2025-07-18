@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ title }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h1 style="text-align: center;">{{ title }}</h1>
+    
+    <div class="content">
+        <h2 style="text-align: center;">{{ message }}</h2>
+    </div>
+
+    <nav>
+        <a href="/">Home</a>
+        <a href="/count">Count</a>
+    </nav>
+</body>
+</html>

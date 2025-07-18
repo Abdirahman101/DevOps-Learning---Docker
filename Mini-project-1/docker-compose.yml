@@ -2,14 +2,17 @@ version: '3.8'
 # Version of the Docker Compose file format
 services: #list all the different parts of the application
   web: # the web application
-    build: . # build the Dockerfile in the current directory
-    expose: # expose the web application on port 5002
+    build: . #build the Dockerfile in the current directory
+    expose: #expose the web application on port 5003
       - "5003" 
     depends_on:
-      - redis # the web application depends on the database service
+      - redis #the web application depends on the database service
     environment:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
+    volumes:
+      - ./templates:/app/templates
+      - ./static:/app/static
   redis: # the database service
     image: "redis:latest"
     ports:
